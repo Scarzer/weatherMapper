@@ -1,0 +1,44 @@
+#!/bin/bash
+HOST='ftp://ftp.ssec.wisc.edu'
+TARGETFOLDER1='weather/ZIPS/sndrtpw'
+TARGETFOLDER2='weather/ZIPS/sndrprofiles'
+TARGETFOLDER3='weather/ZIPS/sndrcloudproduct'
+TARGETFOLDER4='weather/ZIPS/sndrtbo'
+
+SOURCEFOLDER1='pub/ssec/rtascii/jli_zli/sndrtpw/'
+SOURCEFOLDER2='pub/ssec/rtascii/jli_zli/sndrprofiles/'
+SOURCEFOLDER3='pub/ssec/rtascii/sndrcloudproduct/'
+SOURCEFOLDER4='pub/ssec/rtascii/jli_zli/sndrtbo/'
+
+echo "Starting Sync `date`" >> /home/irv/weather/sync.log
+
+lftp -f "
+open $HOST
+lcd $SOURCEFOLDER1
+mirror --delete --verbose  $SOURCEFOLDER1 $TARGETFOLDER1 & 
+
+lcd $SOURCEFOLDER2
+mirror --delete --verbose  $SOURCEFOLDER2 $TARGETFOLDER2 & 
+
+lcd $SOURCEFOLDER3
+mirror --delete --verbose  $SOURCEFOLDER3 $TARGETFOLDER3 & 
+
+lcd $SOURCEFOLDER4
+mirror --delete --verbose  $SOURCEFOLDER4 $TARGETFOLDER4 & 
+
+wait all
+
+bye
+"
+echo "Ending Sync `date`" >> /home/irv/weather/sync.log
+
+echo "Start Database import" >> /home/irv/weather/sync.log
+
+## This is where AWK is going!
+
+echo "Ending Database import" >> /home/irv/weather/sync.log
+
+
+#### Database Sync Method here
+#time bzip2 -dkc 28Feb15.23z.g15.tbop_merged_cimss_jli_zli_rets7_gw_pacific_qc_0p5gfs_w_fg_0p5gfs_t_fg_dyn_ma_ba.bz2 | sed -e '1s/...//' | head -n -2 | tr -s [:blank:] "," | csvjson | mongoimport --jsonArray -d weather -c data -vvv
+
